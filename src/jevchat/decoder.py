@@ -10,7 +10,7 @@ from typing import Any
 
 from typesafe_sdk import Choice
 
-from jevchat.codebook import Codebook
+from jevchat.codebook import Codebook, looks_complete
 from jevchat.sampling import sample_from, top_items
 from jevchat.state import conversation_state, piece_criteria, step_questions
 from jevchat.types import ChatMessage, DecodeEvent, Piece, Plan, Usage
@@ -32,14 +32,18 @@ def _with_ids(pieces: list[Piece], prefix: str) -> list[Piece]:
 @dataclass(frozen=True)
 class DecodeConfig:
     model: str = "jev-latest"
-    temperature: float = 0.7
+    temperature: float = 0.4
     top_p: float = 0.92
     eos_threshold: float = 0.72
+    complete_eos_threshold: float = 0.40
     other_threshold: float = 0.35
     speculative_confidence: float = 0.42
     max_calls: int = 14
     max_chars: int = 480
     seed: int | None = None
+    block_repeat: bool = True
+    speculative: bool = True
+    mode: str = "decode"  # "decode" or "select"
 
 
 class SystemOneDecoder:
@@ -57,18 +61,31 @@ class SystemOneDecoder:
         self.config = config or DecodeConfig()
 
     async def generate(self, messages: list[ChatMessage]) -> AsyncIterator[DecodeEvent]:
+        if self.config.mode == "select":
+            async for event in self._select(messages):
+                yield event
+            return
+
         config = self.config
         rng = Random(config.seed)
         usage = Usage()
         prefix = ""
         plan: Plan | None = None
+        used_labels: list[str] = []
+        stop = "max_calls"
 
         for _ in range(config.max_calls):
             if len(prefix) >= config.max_chars:
+                stop = "max_chars"
                 break
 
-            primary, expansions = self.codebook.propose(messages, prefix)
-            speculative = self.codebook.speculative_targets(primary)
+            banned = frozenset(used_labels[-6:] if config.block_repeat else ())
+            primary, expansions = self.codebook.propose(
+                messages, prefix, banned_labels=banned
+            )
+            speculative = (
+                self.codebook.speculative_targets(primary) if config.speculative else []
+            )
             follow_up_sets = {
                 piece.id: _with_ids(
                     self.codebook.propose(messages, prefix + piece.surface)[0][:24],
@@ -106,6 +123,7 @@ class SystemOneDecoder:
                     "output_tokens": output_tokens,
                     "questions": list(questions),
                     "top": _named_top(primary, answers["next"].probabilities),
+                    "done_p": round(float(answers["done"].noul), 4),
                 },
             )
 
@@ -126,7 +144,14 @@ class SystemOneDecoder:
                     },
                 )
 
-            if prefix and float(answers["done"].noul) >= config.eos_threshold:
+            done_p = float(answers["done"].noul)
+            eos_cut = (
+                config.complete_eos_threshold
+                if looks_complete(prefix)
+                else config.eos_threshold
+            )
+            if prefix and done_p >= eos_cut:
+                stop = "done_noul"
                 break
 
             next_id = sample_from(
@@ -139,6 +164,7 @@ class SystemOneDecoder:
 
             if piece.kind == "eos":
                 if prefix:
+                    stop = "eos_choice"
                     break
                 next_id = _mode_excluding(answers["next"].probabilities, {piece.id})
                 piece = by_id[next_id]
@@ -148,11 +174,13 @@ class SystemOneDecoder:
                     messages, prefix, expansions, usage, rng
                 )
                 if recovered is None:
+                    stop = "other_fail"
                     break
                 piece = recovered
                 by_id[piece.id] = piece
 
             prefix += piece.surface
+            used_labels.append(piece.label)
             yield DecodeEvent(
                 kind="token",
                 text=piece.surface,
@@ -178,6 +206,7 @@ class SystemOneDecoder:
                         and follow_piece.surface
                     ):
                         prefix += follow_piece.surface
+                        used_labels.append(follow_piece.label)
                         yield DecodeEvent(
                             kind="token",
                             text=follow_piece.surface,
@@ -192,6 +221,7 @@ class SystemOneDecoder:
             kind="done",
             text=prefix.strip(),
             data={
+                "stop": stop,
                 "usage": {
                     "calls": usage.calls,
                     "input_tokens": usage.input_tokens,
@@ -206,6 +236,65 @@ class SystemOneDecoder:
                     "length_score": plan.length_score,
                     "grounded": plan.grounded,
                 },
+            },
+        )
+
+    async def _select(self, messages: list[ChatMessage]) -> AsyncIterator[DecodeEvent]:
+        config = self.config
+        rng = Random(config.seed)
+        usage = Usage()
+        replies = self.codebook.complete_replies(messages)
+        questions = {
+            "reply": Choice(
+                instructions={
+                    "question": "Which complete assistant reply should be sent?",
+                    "focus": "Choose one full reply. Do not continue after this choice.",
+                    "constraint": "Prefer a correct short answer over a greeting or a copied question span.",
+                },
+                criteria=piece_criteria(replies),
+            )
+        }
+        state = conversation_state(messages, "", None)
+        started = time.perf_counter()
+        response = await self.client.evaluate(state, questions, model=config.model)
+        usage.add(*_usage_of(response), time.perf_counter() - started)
+        answer = response.answers["reply"]
+        yield DecodeEvent(
+            kind="call",
+            data={
+                "call": 1,
+                "latency_s": round(usage.latency_s, 3),
+                "input_tokens": usage.input_tokens,
+                "output_tokens": usage.output_tokens,
+                "questions": ["reply"],
+                "top": _named_top(replies, answer.probabilities),
+            },
+        )
+        chosen_id = sample_from(
+            answer.probabilities,
+            temperature=config.temperature,
+            top_p=config.top_p,
+            rng=rng,
+        )
+        by_id = {piece.id: piece for piece in replies}
+        piece = by_id[chosen_id]
+        yield DecodeEvent(
+            kind="token",
+            text=piece.surface,
+            data=_token_data(piece, answer.probabilities.get(chosen_id, 0.0), False),
+        )
+        yield DecodeEvent(
+            kind="done",
+            text=piece.surface,
+            data={
+                "stop": "select",
+                "usage": {
+                    "calls": usage.calls,
+                    "input_tokens": usage.input_tokens,
+                    "output_tokens": usage.output_tokens,
+                    "latency_s": round(usage.latency_s, 3),
+                },
+                "plan": None,
             },
         )
 

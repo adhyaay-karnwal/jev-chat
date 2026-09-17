@@ -18,6 +18,7 @@ htmlcov/
 .vscode/
 *.log
 .uv-cache/
+paper/preview/
 
 # skills.sh --agent '*' scatter; keep only .agents/skills
 .adal/

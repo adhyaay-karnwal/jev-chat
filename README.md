@@ -1,14 +1,14 @@
 # jev-chat
 
-A working chatbot whose next token is a **typed decision**, not a generated string.
+A research decoder that treats Jev (a System One **decision** model) as if it were a language model.
 
-[Jev](https://typesafe.ai) is TypeSafe's System One model. It evaluates `Choice`, `Score`, and `Noul` questions against a state and returns calibrated probabilities. It does not write text. This repository turns that constraint into an autoregressive decoder: code proposes a bounded set of next surface units, Jev returns \(P(u_t \mid \text{conversation}, \text{prefix})\), code samples and appends.
+[Jev](https://typesafe.ai) returns `Choice` / `Score` / `Noul` distributions. It does not emit tokens. This repo asks for the next surface unit anyway, samples, and appends. Autoregression over that interface is the wrong use of the model; one-shot **selection** of a complete reply is the TypeSafe-native one. The paper measures both.
 
-Naive next-letter decoding is linear in response length in API calls. The decoder here is built to stay sublinear.
+Paper: [paper/main.pdf](paper/main.pdf) · traces: [experiments/results/runs.json](experiments/results/runs.json)
 
 ## Method
 
-Three uses of the System One programming model, documented in [`paper/METHOD.md`](paper/METHOD.md):
+Documented in [`paper/METHOD.md`](paper/METHOD.md) and the paper:
 
 1. **Hierarchical codebook.** A `Choice` has at most 255 options. The primary set mixes phrases, copy spans from the user, function words, and frequent content words, plus `other`. The long tail is a letter, then a word — asked in parallel only when `other` wins.
 2. **Speculative fan-out.** Independent questions share one state. Each call asks for the next unit *and* hypothetical follow-ups (“assume the prefix was just extended by \(u\)”). Code stitches an accepted path.
@@ -33,6 +33,7 @@ cp .env.example .env   # set TYPESAFE_API_KEY
 uv run jevchat "What is a System One model?"
 uv run jevchat --serve          # http://127.0.0.1:8765
 uv run pytest
+uv run --with matplotlib python experiments/bench.py
 ```
 
 The demo UI streams tokens as they are sampled and shows the per-call `Choice` mass in a side trace. That trace is the system: there is no hidden generator behind it.
@@ -48,7 +49,7 @@ tests/                codebook, sampling, and a scripted decoder
 
 ## Limits
 
-Coverage of the candidate set is the binding constraint. If the right continuation is not in the codebook and tail recovery fails, the decoder stops. Jev is trained for calibrated decisions (RLCD), not open-ended generation; this is an estimator on top of that interface, not a claim that System One models are decoder-only transformers.
+Naive autoregression loops greetings and copies operands (`1+1 → 1`). Greedy decoding recovers short facts and still emits ungrammatical strings. Select is grammatical when the answer is in the candidate list, and silent otherwise. See the paper.
 
 ## License
 

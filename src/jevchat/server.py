@@ -25,7 +25,7 @@ class IncomingMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[IncomingMessage] = Field(min_length=1)
-    temperature: float = 0.7
+    temperature: float = 0.4
     max_calls: int = 14
 
 

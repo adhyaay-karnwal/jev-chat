@@ -93,7 +93,13 @@ def looks_complete(prefix: str) -> bool:
 
 
 class Codebook:
-    def __init__(self, words_path: Path | None = None) -> None:
+    def __init__(
+        self,
+        words_path: Path | None = None,
+        *,
+        allow_phrases: bool = True,
+        reopen_after_complete: bool = False,
+    ) -> None:
         path = words_path or DATA_DIR / "words.txt"
         raw = path.read_text(encoding="utf-8").splitlines()
         self.words: tuple[str, ...] = tuple(
@@ -105,6 +111,8 @@ class Codebook:
         self.by_letter: dict[str, tuple[str, ...]] = {
             letter: tuple(values) for letter, values in by_letter.items()
         }
+        self.allow_phrases = allow_phrases
+        self.reopen_after_complete = reopen_after_complete
 
     @cached_property
     def function_set(self) -> set[str]:
@@ -114,14 +122,19 @@ class Codebook:
         self,
         messages: list[ChatMessage],
         prefix: str,
+        *,
+        banned_labels: frozenset[str] | None = None,
     ) -> tuple[list[Piece], dict[str, list[Piece]]]:
         """Return ``(primary, letter_expansions)``."""
 
         partial = current_partial(prefix)
         pieces: list[Piece] = []
         used_surfaces: set[str] = set()
+        banned = {label.lower() for label in (banned_labels or frozenset())}
 
         def add(surface: str, kind: PieceKind, label: str, description: str) -> None:
+            if label.lower() in banned and kind != "eos":
+                return
             if surface in used_surfaces and kind != "eos":
                 return
             if len(pieces) >= MAX_PRIMARY - 1 and kind != "other":
@@ -148,13 +161,13 @@ class Codebook:
             for char in "abcdefghijklmnopqrstuvwxyz'":
                 add(char, "char", char, f"Append the character '{char}' to the current word.")
         else:
-            if not prefix:
+            if self.allow_phrases and not prefix:
                 for phrase in OPENERS:
                     add(_closed(phrase), "phrase", phrase, f"Open the reply with {phrase!r}.")
-            elif looks_complete(prefix):
+            elif self.allow_phrases and looks_complete(prefix) and self.reopen_after_complete:
                 for phrase in OPENERS[:12]:
                     add(_closed(phrase), "phrase", phrase, f"Start a new sentence with {phrase!r}.")
-            else:
+            elif self.allow_phrases and not looks_complete(prefix):
                 for phrase in MID_PHRASES[:MAX_PHRASES]:
                     add(_closed(phrase), "phrase", phrase, f"Insert the phrase {phrase!r}.")
 
@@ -178,6 +191,59 @@ class Codebook:
 
         expansions = self._letter_expansions(prefix, partial)
         return pieces, expansions
+
+    def complete_replies(self, messages: list[ChatMessage]) -> list[Piece]:
+        """Candidate *full* replies for one-shot selection."""
+
+        pieces: list[Piece] = []
+        seen: set[str] = set()
+
+        def add(text: str, kind: PieceKind, description: str) -> None:
+            closed = text.strip()
+            if not closed or closed.lower() in seen or len(pieces) >= MAX_PRIMARY:
+                return
+            seen.add(closed.lower())
+            pieces.append(
+                Piece(
+                    id=f"r{len(pieces)}",
+                    surface=closed,
+                    kind=kind,
+                    label=closed,
+                    description=description,
+                )
+            )
+
+        for phrase in (
+            "Hello.",
+            "Hi.",
+            "Yes.",
+            "No.",
+            "I don't know.",
+            "I can't help with that.",
+            "OK.",
+        ):
+            add(phrase, "phrase", f"Reply with {phrase!r}.")
+        for digit in DIGITS:
+            add(digit, "word", f"Reply with the number {digit}.")
+        for span in self._copy_spans(messages)[:12]:
+            add(span, "copy", f"Reply by repeating {span!r} from the user.")
+        for word in (
+            "Paris",
+            "London",
+            "Tuesday",
+            "red",
+            "blue",
+            "yellow",
+            "cat",
+            "two",
+            "four",
+            "yes",
+            "no",
+        ):
+            add(word, "word", f"Reply with {word!r}.")
+        add("2", "word", "The integer two.")
+        add("4", "word", "The integer four.")
+        return pieces
 
     def speculative_targets(self, primary: list[Piece]) -> list[Piece]:
         ranked: list[Piece] = []

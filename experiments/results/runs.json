@@ -1,0 +1,580 @@
+[
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "greet",
+    "prompt": "Hello, this is a test",
+    "text": "Hello. help I am to how can you",
+    "ok": true,
+    "calls": 8,
+    "latency_s": 1.842,
+    "input_tokens": 69863,
+    "output_tokens": 26847,
+    "stop": "max_calls",
+    "repetition": 0.0,
+    "done_curve": [
+      0.02,
+      0.59,
+      0.05,
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "add1",
+    "prompt": "What is 1+1",
+    "text": "is 2",
+    "ok": true,
+    "calls": 3,
+    "latency_s": 0.522,
+    "input_tokens": 26495,
+    "output_tokens": 10164,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.07
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "add2",
+    "prompt": "What is 2+2? Reply with just the number.",
+    "text": "4",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.345,
+    "input_tokens": 17898,
+    "output_tokens": 6877,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.02,
+      0.66
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "france",
+    "prompt": "What is the capital of France? One sentence.",
+    "text": "the is paris",
+    "ok": true,
+    "calls": 6,
+    "latency_s": 1.045,
+    "input_tokens": 41766,
+    "output_tokens": 15861,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.02,
+      0.07
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "water",
+    "prompt": "Is water wet? Yes or no.",
+    "text": "The short answer is yes",
+    "ok": false,
+    "calls": 3,
+    "latency_s": 0.621,
+    "input_tokens": 26575,
+    "output_tokens": 10192,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.02,
+      0.02,
+      0.18
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "color",
+    "prompt": "Name one primary color.",
+    "text": "a primary color such as red",
+    "ok": true,
+    "calls": 8,
+    "latency_s": 1.509,
+    "input_tokens": 59364,
+    "output_tokens": 22577,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.03,
+      0.02,
+      0.05,
+      0.02,
+      0.28
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "monday",
+    "prompt": "What day comes after Monday?",
+    "text": "is tuesday",
+    "ok": true,
+    "calls": 5,
+    "latency_s": 1.183,
+    "input_tokens": 32970,
+    "output_tokens": 12478,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.08
+    ]
+  },
+  {
+    "strategy": "naive_ar",
+    "prompt_id": "cat",
+    "prompt": "Spell the word cat in letters.",
+    "text": "is the three letters the three the three",
+    "ok": false,
+    "calls": 8,
+    "latency_s": 1.876,
+    "input_tokens": 70579,
+    "output_tokens": 27019,
+    "stop": "max_calls",
+    "repetition": 0.5,
+    "done_curve": [
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "greet",
+    "prompt": "Hello, this is a test",
+    "text": "Hello.",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.381,
+    "input_tokens": 17234,
+    "output_tokens": 6787,
+    "stop": "done_noul",
+    "repetition": 0.0,
+    "done_curve": [
+      0.02,
+      0.58
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "add1",
+    "prompt": "What is 1+1",
+    "text": "2",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.452,
+    "input_tokens": 17588,
+    "output_tokens": 6826,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.42
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "add2",
+    "prompt": "What is 2+2? Reply with just the number.",
+    "text": "4",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.447,
+    "input_tokens": 17695,
+    "output_tokens": 6866,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.68
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "france",
+    "prompt": "What is the capital of France? One sentence.",
+    "text": "the capital is paris",
+    "ok": true,
+    "calls": 7,
+    "latency_s": 1.422,
+    "input_tokens": 50157,
+    "output_tokens": 19130,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.01,
+      0.02,
+      0.02,
+      0.13
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "water",
+    "prompt": "Is water wet? Yes or no.",
+    "text": "It depends. is yes no because it be the",
+    "ok": false,
+    "calls": 10,
+    "latency_s": 2.374,
+    "input_tokens": 75454,
+    "output_tokens": 28825,
+    "stop": "max_calls",
+    "repetition": 0.111,
+    "done_curve": [
+      0.02,
+      0.26,
+      0.02,
+      0.04,
+      0.03,
+      0.02,
+      0.02,
+      0.02
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "color",
+    "prompt": "Name one primary color.",
+    "text": "one primary color red",
+    "ok": true,
+    "calls": 7,
+    "latency_s": 1.525,
+    "input_tokens": 50198,
+    "output_tokens": 19128,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.03,
+      0.02,
+      0.04,
+      0.23
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "monday",
+    "prompt": "What day comes after Monday?",
+    "text": "The short answer is is the tuesday",
+    "ok": true,
+    "calls": 7,
+    "latency_s": 1.329,
+    "input_tokens": 50196,
+    "output_tokens": 19121,
+    "stop": "eos_choice",
+    "repetition": 0.286,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.02,
+      0.02,
+      0.06
+    ]
+  },
+  {
+    "strategy": "constrained_ar",
+    "prompt_id": "cat",
+    "prompt": "Spell the word cat in letters.",
+    "text": "The short answer is three letters is the a word cat",
+    "ok": true,
+    "calls": 10,
+    "latency_s": 2.082,
+    "input_tokens": 76176,
+    "output_tokens": 29063,
+    "stop": "max_calls",
+    "repetition": 0.182,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.03,
+      0.05,
+      0.02,
+      0.02,
+      0.02,
+      0.04
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "greet",
+    "prompt": "Hello, this is a test",
+    "text": "Hello.",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.338,
+    "input_tokens": 9302,
+    "output_tokens": 3378,
+    "stop": "done_noul",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.6
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "add1",
+    "prompt": "What is 1+1",
+    "text": "2",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.362,
+    "input_tokens": 9756,
+    "output_tokens": 3549,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.43
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "add2",
+    "prompt": "What is 2+2? Reply with just the number.",
+    "text": "4",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.407,
+    "input_tokens": 9862,
+    "output_tokens": 3589,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.68
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "france",
+    "prompt": "What is the capital of France? One sentence.",
+    "text": "the capital is paris",
+    "ok": true,
+    "calls": 7,
+    "latency_s": 1.373,
+    "input_tokens": 29899,
+    "output_tokens": 10927,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.02,
+      0.02,
+      0.15
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "water",
+    "prompt": "Is water wet? Yes or no.",
+    "text": "Yes.",
+    "ok": true,
+    "calls": 2,
+    "latency_s": 0.319,
+    "input_tokens": 9259,
+    "output_tokens": 3357,
+    "stop": "done_noul",
+    "repetition": 0.0,
+    "done_curve": [
+      0.02,
+      0.84
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "color",
+    "prompt": "Name one primary color.",
+    "text": "Sure. a primary color such as red",
+    "ok": true,
+    "calls": 9,
+    "latency_s": 1.602,
+    "input_tokens": 38528,
+    "output_tokens": 14085,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.1,
+      0.02,
+      0.02,
+      0.03,
+      0.02,
+      0.14
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "monday",
+    "prompt": "What day comes after Monday?",
+    "text": "the is tuesday",
+    "ok": true,
+    "calls": 6,
+    "latency_s": 1.207,
+    "input_tokens": 25310,
+    "output_tokens": 9211,
+    "stop": "eos_choice",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.02,
+      0.02,
+      0.07
+    ]
+  },
+  {
+    "strategy": "greedy_ar",
+    "prompt_id": "cat",
+    "prompt": "Spell the word cat in letters.",
+    "text": "Sure. the word cat is a three letters",
+    "ok": true,
+    "calls": 10,
+    "latency_s": 2.166,
+    "input_tokens": 42993,
+    "output_tokens": 15773,
+    "stop": "max_calls",
+    "repetition": 0.0,
+    "done_curve": [
+      0.01,
+      0.1,
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02,
+      0.02
+    ]
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "greet",
+    "prompt": "Hello, this is a test",
+    "text": "OK.",
+    "ok": false,
+    "calls": 1,
+    "latency_s": 0.144,
+    "input_tokens": 1097,
+    "output_tokens": 278,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "add1",
+    "prompt": "What is 1+1",
+    "text": "2",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.299,
+    "input_tokens": 1053,
+    "output_tokens": 260,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "add2",
+    "prompt": "What is 2+2? Reply with just the number.",
+    "text": "4",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.16,
+    "input_tokens": 1104,
+    "output_tokens": 279,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "france",
+    "prompt": "What is the capital of France? One sentence.",
+    "text": "Paris",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.15,
+    "input_tokens": 1123,
+    "output_tokens": 288,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "water",
+    "prompt": "Is water wet? Yes or no.",
+    "text": "Yes.",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.151,
+    "input_tokens": 1077,
+    "output_tokens": 269,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "color",
+    "prompt": "Name one primary color.",
+    "text": "red",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.136,
+    "input_tokens": 1118,
+    "output_tokens": 288,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "monday",
+    "prompt": "What day comes after Monday?",
+    "text": "Tuesday",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.204,
+    "input_tokens": 1097,
+    "output_tokens": 279,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  },
+  {
+    "strategy": "select",
+    "prompt_id": "cat",
+    "prompt": "Spell the word cat in letters.",
+    "text": "cat",
+    "ok": true,
+    "calls": 1,
+    "latency_s": 0.198,
+    "input_tokens": 1120,
+    "output_tokens": 288,
+    "stop": "select",
+    "repetition": 0.0,
+    "done_curve": []
+  }
+]
