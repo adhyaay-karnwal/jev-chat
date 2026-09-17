@@ -1,0 +1,49 @@
+[project]
+name = "jevchat"
+version = "0.1.0"
+description = "A chatbot from typed Jev decisions: hierarchical speculative decoding over System One probabilities."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Adhyaay Karnwal" }]
+keywords = ["jev", "typesafe", "system-one", "language-model", "decoding"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "typesafe-sdk>=0.5.7",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24"]
+
+[project.scripts]
+jevchat = "jevchat.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/adhyaay-karnwal/jev-chat"
+Issues = "https://github.com/adhyaay-karnwal/jev-chat/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jevchat"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

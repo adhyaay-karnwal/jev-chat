@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>jev-chat — System One language model</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #14110d;
+      --paper: #1c1812;
+      --ink: #f3ead8;
+      --muted: #9a8f7c;
+      --line: #2c261e;
+      --accent: #d4773b;
+      --phrase: #7eb8a0;
+      --copy: #d4a574;
+      --punct: #c4b59a;
+      --word: #f3ead8;
+      --spec: #8ea7d6;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); }
+    body {
+      font-family: "Source Serif 4", Georgia, serif;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 18px 28px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    header h1 {
+      font-family: Fraunces, serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+      min-height: 0;
+    }
+    .chat, .trace {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .trace { border-left: 1px solid var(--line); background: #16130f; }
+    .log, .calls {
+      flex: 1;
+      overflow: auto;
+      padding: 22px 28px;
+    }
+    .msg { margin: 0 0 18px; max-width: 42rem; }
+    .msg .who {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .msg.user .who { color: var(--accent); }
+    .msg .body { white-space: pre-wrap; line-height: 1.45; font-size: 17px; }
+    .tok { border-radius: 3px; }
+    .tok.phrase { color: var(--phrase); }
+    .tok.copy { color: var(--copy); }
+    .tok.punct { color: var(--punct); }
+    .tok.word { color: var(--word); }
+    .tok.speculative { outline: 1px dashed color-mix(in srgb, var(--spec) 50%, transparent); }
+    .composer {
+      display: flex;
+      gap: 10px;
+      padding: 16px 28px 22px;
+      border-top: 1px solid var(--line);
+    }
+    textarea {
+      flex: 1;
+      resize: none;
+      height: 64px;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: 15px/1.4 "Source Serif 4", serif;
+    }
+    button {
+      background: var(--accent);
+      color: #1a120c;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      font-family: Fraunces, serif;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.45; cursor: default; }
+    .call {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: var(--paper);
+    }
+    .call h3 {
+      margin: 0 0 8px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .bar {
+      display: grid;
+      grid-template-columns: 88px 1fr 42px;
+      gap: 8px;
+      align-items: center;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      margin: 4px 0;
+    }
+    .bar i {
+      display: block;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 99px;
+    }
+    .stats {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      gap: 16px;
+    }
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+      .trace { border-left: 0; border-top: 1px solid var(--line); max-height: 40vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>jev<span>-chat</span></h1>
+    <p>Next token is a typed decision · Jev never writes a sentence</p>
+  </header>
+  <main>
+    <section class="chat">
+      <div class="log" id="log">
+        <div class="msg">
+          <div class="who">system</div>
+          <div class="body">Jev returns probabilities over Choice / Score / Noul questions. This decoder samples the next surface unit from those distributions, with phrase-sized chunks and speculative follow-ups so it does not pay one API call per letter.</div>
+        </div>
+      </div>
+      <form class="composer" id="form">
+        <textarea id="input" placeholder="Ask something short." required></textarea>
+        <button type="submit" id="send">Send</button>
+      </form>
+    </section>
+    <aside class="trace">
+      <div class="stats" id="stats">
+        <span>calls 0</span>
+        <span>tokens 0</span>
+        <span>0.0s</span>
+      </div>
+      <div class="calls" id="calls">
+        <p class="empty">Decision trace appears here as Jev answers.</p>
+      </div>
+    </aside>
+  </main>
+  <script>
+    const log = document.getElementById("log");
+    const calls = document.getElementById("calls");
+    const stats = document.getElementById("stats");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+    const history = [];
+    let totals = { calls: 0, tokens: 0, latency: 0 };
+
+    function addMessage(role, html) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg " + role;
+      wrap.innerHTML = `<div class="who">${role}</div><div class="body"></div>`;
+      wrap.querySelector(".body").innerHTML = html;
+      log.appendChild(wrap);
+      log.scrollTop = log.scrollHeight;
+      return wrap.querySelector(".body");
+    }
+
+    function renderBars(top) {
+      return (top || []).map(([label, p]) => {
+        const pct = Math.max(2, Math.round(p * 100));
+        return `<div class="bar"><span>${label}</span><i style="width:${pct}%"></i><span>${p.toFixed(2)}</span></div>`;
+      }).join("");
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+      send.disabled = true;
+      history.push({ role: "user", content: text });
+      addMessage("user", escapeHtml(text));
+      const body = addMessage("assistant", "");
+      calls.innerHTML = "";
+      totals = { calls: 0, tokens: 0, latency: 0 };
+      updateStats();
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history, temperature: 0.7 }),
+      });
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let assistant = "";
+      let eventName = "message";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop();
+        for (const chunk of chunks) {
+          const lines = chunk.split("\n");
+          let dataLine = "";
+          for (const line of lines) {
+            if (line.startsWith("event:")) eventName = line.slice(6).trim();
+            if (line.startsWith("data:")) dataLine += line.slice(5).trim();
+          }
+          if (!dataLine) continue;
+          const data = JSON.parse(dataLine);
+          if (eventName === "token") {
+            assistant += data.text || "";
+            const span = document.createElement("span");
+            span.className = "tok " + (data.kind || "word") + (data.speculative ? " speculative" : "");
+            span.title = `${data.kind} p=${data.p} ${data.speculative ? "speculative" : ""}`;
+            span.textContent = data.text || "";
+            body.appendChild(span);
+            log.scrollTop = log.scrollHeight;
+          } else if (eventName === "call") {
+            totals.calls = data.call;
+            totals.tokens += (data.input_tokens || 0) + (data.output_tokens || 0);
+            totals.latency += data.latency_s || 0;
+            updateStats();
+            const card = document.createElement("div");
+            card.className = "call";
+            const top = (data.top || []).map((row) => [row.label, row.p]);
+            card.innerHTML = `<h3>call ${data.call} · ${data.latency_s}s · ${data.input_tokens} in</h3>${renderBars(top)}`;
+            calls.prepend(card);
+          } else if (eventName === "plan") {
+            const card = document.createElement("div");
+            card.className = "call";
+            card.innerHTML = `<h3>plan</h3><div class="bar"><span>act</span><i style="width:70%"></i><span>${data.act}</span></div>`;
+            calls.prepend(card);
+          } else if (eventName === "done") {
+            history.push({ role: "assistant", content: data.text || assistant });
+            if (data.usage) {
+              totals.calls = data.usage.calls;
+              totals.tokens = data.usage.input_tokens + data.usage.output_tokens;
+              totals.latency = data.usage.latency_s;
+              updateStats();
+            }
+          } else if (eventName === "error") {
+            body.textContent += (body.textContent ? "\n" : "") + "Error: " + (data.text || "request failed");
+          }
+        }
+      }
+      send.disabled = false;
+      input.focus();
+    });
+
+    function updateStats() {
+      stats.innerHTML = `<span>calls ${totals.calls}</span><span>tokens ${totals.tokens}</span><span>${totals.latency.toFixed(1)}s</span>`;
+    }
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+  </script>
+</body>
+</html>

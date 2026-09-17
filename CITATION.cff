@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "jev-chat: Decision-native language modeling with TypeSafe Jev"
+message: If you use this software, please cite it as below.
+type: software
+authors:
+  - family-names: Karnwal
+    given-names: Adhyaay
+license: MIT
+repository-code: https://github.com/adhyaay-karnwal/jev-chat
